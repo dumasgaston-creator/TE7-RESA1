@@ -1,72 +1,54 @@
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include<stdio.h>
+#include<stdlib.h>
 #include <sys/socket.h>
-#include <unistd.h>
+#include<netdb.h>
+#include <arpa/inet.h>
 
-#include "common.h"
+int main(int argc, char *argv[]){
 
-void echo_client(int sockfd) {
-	char buff[MSG_LEN];
-	int n;
-	while (1) {
-		// Cleaning memory
-		memset(buff, 0, MSG_LEN);
-		// Getting message from client
-		printf("Message: ");
-		n = 0;
-		while ((buff[n++] = getchar()) != '\n') {} // trailing '\n' will be sent
-		// Sending message (ECHO)
-		if (send(sockfd, buff, strlen(buff), 0) <= 0) {
-			break;
-		}
-		printf("Message sent!\n");
-		// Cleaning memory
-		memset(buff, 0, MSG_LEN);
-		// Receiving message
-		if (recv(sockfd, buff, MSG_LEN, 0) <= 0) {
-			break;
-		}
-		printf("Received: %s", buff);
-	}
-}
+	// Req 1.1
 
-int handle_connect() {
-	struct addrinfo hints, *result, *rp;
-	int sfd;
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	if (getaddrinfo(SERV_ADDR, SERV_PORT, &hints, &result) != 0) {
-		perror("getaddrinfo()");
+	if(argc != 3){
+		printf("Mauvais nombre d'arguments");
 		exit(EXIT_FAILURE);
 	}
-	for (rp = result; rp != NULL; rp = rp->ai_next) {
-		sfd = socket(rp->ai_family, rp->ai_socktype,rp->ai_protocol);
-		if (sfd == -1) {
-			continue;
-		}
-		if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1) {
-			break;
-		}
-		close(sfd);
-	}
-	if (rp == NULL) {
-		fprintf(stderr, "Could not connect\n");
+
+	int client_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if(-1 == client_fd){
+		printf("Erreur création de la socket");
 		exit(EXIT_FAILURE);
 	}
-	freeaddrinfo(result);
-	return sfd;
-}
 
-int main() {
-	int sfd;
-	sfd = handle_connect();
-	echo_client(sfd);
-	close(sfd);
-	return EXIT_SUCCESS;
-}
+	struct sockaddr_in server_addr;
+	memset(&server_addr, 0, sizeof(server_addr));
+	server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(atoi(argv[2]));
+    inet_aton(argv[1], &server_addr.sin_addr);
 
+	int ret_value;
+    ret_value = connect(client_fd, (struct sockaddr*)&server_addr, sizeof(server_addr));
+    if (ret_value == -1){
+        perror("En cours de connexion");
+        exit(EXIT_FAILURE);
+    }
+
+	//Req 1.4
+
+	char buffer[256];
+	int msg_size = strlen(buffer);
+
+	int size_sent = write(client_fd, &msg_size, sizeof(int));
+	size_sent = write(client_fd, client_fd, msg_size);
+
+	// Req 1.5
+
+	struct pollfd fds[2];
+	fds[0].fd = 0;
+    fds[0].events = POLLIN;
+
+	fds[1].fd = client_fd;
+    fds[0].events = POLLIN;
+
+
+
+}
