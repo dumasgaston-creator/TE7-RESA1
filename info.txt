@@ -1,3 +1,7 @@
-Nom : 
-Prénom : 
-github_login : 
+Nom : Pillon Glod
+Prénom : Mathis
+github_login : mathispg81-hash
+
+Nom : Dumas
+Prénom : Gaston
+github_login : dumasgaston-creator
