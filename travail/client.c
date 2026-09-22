@@ -3,6 +3,11 @@
 #include <sys/socket.h>
 #include<netdb.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <string.h> 
+#include <poll.h>
+
+#define BUFFER_SIZE 256
 
 int main(int argc, char *argv[]){
 
@@ -32,23 +37,53 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
-	//Req 1.4
-
-	char buffer[256];
-	int msg_size = strlen(buffer);
-
-	int size_sent = write(client_fd, &msg_size, sizeof(int));
-	size_sent = write(client_fd, client_fd, msg_size);
-
 	// Req 1.5
 
 	struct pollfd fds[2];
 	fds[0].fd = 0;
     fds[0].events = POLLIN;
+	fds[0].revents = 0;
 
 	fds[1].fd = client_fd;
-    fds[0].events = POLLIN;
+    fds[1].events = POLLIN;
+	fds[1].revents = 0;
 
+	// Req 1.4
+	char buffer[BUFFER_SIZE];
+	while(1){
+		int nbfds = poll(fds, 2, -1);
+		if(-1 == nbfds){
+			perror("Interruption");
+		}
 
+		if(fds[0].revents & POLLIN){
+			int lu = read(0, buffer, BUFFER_SIZE - 1);
+			buffer[lu] = '\0';
 
+			if(strcmp(buffer, "/quit\n") == 0){ // Req 1.7
+				close(client_fd);
+				exit(EXIT_SUCCESS);
+			}
+
+			else{
+				int size_sent = write(client_fd, &lu, sizeof(int));
+				size_sent = write(client_fd, buffer, lu);
+			}
+		}
+
+		if(fds[1].revents & POLLIN){
+			int taille_msg;
+			int ret = read(client_fd, &taille_msg, sizeof(int));
+			if(0 == ret){
+				printf("Le serveur est déconnecté");
+				close(client_fd);
+				exit(EXIT_FAILURE);
+			}
+
+			int lu_serveur = read(client_fd, buffer, taille_msg);
+			buffer[lu_serveur] = '\0';
+			printf("Serveur dit : %s\n", buffer);
+
+		}
+	}
 }
