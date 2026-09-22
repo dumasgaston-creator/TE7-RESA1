@@ -1,0 +1,46 @@
+[SYSTEM_SYNC_PROMPT]
+PROJECT_CONTEXT: ENSEIRB-MATMECA ETE7-RESA1 (Programmation Réseau C, S7).
+TARGET: Jalon 1 (Serveur d'écho TCP IPv4 multi-clients, processus unique).
+KEY_CONSTRAINTS:
+1. Server: Must handle multiple clients via `poll()` (no threads/forks).
+2. Server: Must maintain a linked list of connected clients (fd, IP, port).
+3. Client: Must multiplex STDIN and socket via `poll()`.
+4. Protocol: Send `int` (payload length) BEFORE sending string payload.
+5. Args: Server takes `<port>`, Client takes `<server_name> <port>` via `argc`/`argv`.
+6. Pedagogical Rule: STRICT. NO FULL CODE DUMPS. Step-by-step guidance only. Explain every POSIX call (endianness, memory, structs) mapping to "Programmation Impérative S5" and "Application Networking" courses.
+
+CURRENT_STATE: 
+- Dropped initial `getaddrinfo` base code to focus on manual `struct sockaddr_in` for better low-level understanding.
+- `client.c` pending rewrite.
+- `server.c` current code to sync:
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <port>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    int port = atoi(argv[1]);
+    int sfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sfd == -1) {
+        perror("socket");
+        exit(EXIT_FAILURE);
+    }
+    struct sockaddr_in server_addr;
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(port);
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    
+    // PENDING_NEXT_STEPS: bind(), listen(), and linked list setup.
+}
+
+ACTION_REQUIRED_FROM_AI: Acknowledge this state. Ask the user if they are ready to implement `bind()` and `listen()` line-by-line, explaining the cast to `(struct sockaddr *)`.
+[END_SYNC]
