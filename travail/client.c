@@ -66,8 +66,8 @@ int main(int argc, char *argv[]){
 			}
 
 			else{
-				int size_sent = write(client_fd, &lu, sizeof(int));
-				size_sent = write(client_fd, buffer, lu);
+				write(client_fd, &lu, sizeof(int));
+				write(client_fd, buffer, lu);
 			}
 		}
 
