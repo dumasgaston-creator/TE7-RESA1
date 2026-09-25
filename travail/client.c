@@ -7,7 +7,7 @@
 #include <string.h> 
 #include <poll.h>
 
-#define BUFFER_SIZE 256
+#include "common.h"
 
 int main(int argc, char *argv[]){
 
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]){
 
 			int lu_serveur = read(client_fd, buffer, taille_msg);
 			buffer[lu_serveur] = '\0';
-			printf("Serveur dit : %s\n", buffer);
+			printf("Serveur a lu et repond : %s\n", buffer);
 
 		}
 	}
