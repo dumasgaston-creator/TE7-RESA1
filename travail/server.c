@@ -1,3 +1,4 @@
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -8,12 +9,14 @@
 #include <poll.h>
 
 #include "common.h"
+#include "msg_struct.h"
 
 //req 1.8 declaration du struct qui stocke les données client
 struct client_info {
 	int fd;
 	int port;
 	char ip[16];//suffit pour une ipv4
+	char pseudo[NICK_LEN];// prend en compte le pseudo du client
 	struct client_info *next;// lier ce client au prochain dans la memeoire
 };
 
@@ -129,7 +132,10 @@ int main(int argc, char *argv[]) {
 					buffer[lu_client]='\0';
 					int envoi_msg = write(fds[i].fd, &taille_msg,sizeof(int));
 					envoi_msg = write(fds[i].fd, buffer,taille_msg);
-					die(envoi_msg, "Erreur lors de l'envoi du msg\n");
+						if(envoi_msg < 0){
+							perror("Erreur lors de l'envoi du msg\n");
+							close(fds[i].fd);
+						}
 					printf("Client de la socket %d dit : %s\n",fds[i].fd, buffer);
 
 				}
