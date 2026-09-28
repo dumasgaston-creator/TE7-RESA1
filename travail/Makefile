@@ -1,4 +1,4 @@
-CFLAGS=-Wall -Werror 
+CFLAGS=-Wall
 LDFLAGS=-lpthread
 all: client server
 clean:
