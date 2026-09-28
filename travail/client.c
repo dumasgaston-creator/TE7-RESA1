@@ -82,7 +82,7 @@ int main(int argc, char *argv[]){
 
 			int lu_serveur = read(client_fd, buffer, taille_msg);
 			buffer[lu_serveur] = '\0';
-			printf("Serveur a lu et repond : %s\n", buffer);
+			printf("Serveur a lu ton message qui disait : %s\n", buffer);
 
 		}
 	}

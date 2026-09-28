@@ -115,8 +115,8 @@ int main(int argc, char *argv[]) {
 			}
 		// si c le client existant qui envoie des données
 			else if (i > 0 && (fds[i].revents & POLLIN)){
-				int taille_msg;
-				int lu_client = read(fds[i].fd, &taille_msg, sizeof(int));
+				struct message msg_recu;
+				int lu_client = read(fds[i].fd, &msg_recu, sizeof(struct message));
 				
 				// Si client deconnecté ou erreur 
 				if (lu_client <= 0){
@@ -125,8 +125,32 @@ int main(int argc, char *argv[]) {
 					fds[i].fd = -1;
 					
 				}
-				// Si on a reçu la taille du message on renvoie le meme message au client 
+				// Si on a reçu l'enveloppe (req)' on renvoie le meme message au client 
 				else if(lu_client > 0){
+					
+					// Si texte attacxhé à l'enveloppe
+					if (msg_recu.pld_len >0){
+						char buffer[msg_recu.pld_len + 1];
+						lu_client = read(fds[i].fd, buffer, msg_recu.pld_len +1);
+
+					}
+					//CLient veut faire quoi
+					switch(msg_recu.type){
+						case NICKNAME_NEW:
+							printf ("Le client veut s'appeler : %s\n", msg_recu.infos);
+						break;
+						
+						case ECHO_SEND:
+							printf("Le client veut faire un echo \n");
+						break
+
+						default :
+							printf("Cas non géré par le serveur \n");
+					}
+
+
+
+					
 					char buffer[taille_msg + 1];
 					lu_client = read (fds[i].fd, buffer, taille_msg);
 					buffer[lu_client]='\0';
