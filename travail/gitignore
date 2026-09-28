@@ -1,0 +1,19 @@
+# Exécutables spécifiques
+travail/server
+travail/client
+server
+client
+
+# Fichiers objets de compilation
+*.o
+*.a
+*.so
+
+# Fichiers temporaires et dumps
+*~
+*.swp
+*.core
+
+# Dossiers d'IDE / éditeurs
+.vscode/
+.idea/
