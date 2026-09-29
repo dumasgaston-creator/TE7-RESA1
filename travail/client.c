@@ -8,6 +8,7 @@
 #include <poll.h>
 
 #include "common.h"
+#include "msg_struct.h"
 
 int main(int argc, char *argv[]){
 
@@ -56,7 +57,8 @@ int main(int argc, char *argv[]){
 			perror("Interruption");
 		}
 
-		if(fds[0].revents & POLLIN){
+		if(fds[0].revents & POLLIN){  // Si activité du clavier
+
 			int lu = read(0, buffer, BUFFER_SIZE - 1);
 			buffer[lu] = '\0';
 
@@ -66,21 +68,29 @@ int main(int argc, char *argv[]){
 			}
 
 			else{
-				write(client_fd, &lu, sizeof(int));
-				write(client_fd, buffer, lu);
+				struct message req;
+				memset(&req, 0, sizeof(struct message)); 
+
+				// remplissage info obligatoires
+				req.pld_len = lu;  //taille du texte qu'on a au clavier
+				req.type = ECHO_SEND;  //simple echo pour le serveur
+
+				// expedition
+				write(client_fd, &req, sizeof(struct message)); 
+				write(client_fd, buffer, req.pld_len);
 			}
 		}
 
-		if(fds[1].revents & POLLIN){
-			int taille_msg;
-			int ret = read(client_fd, &taille_msg, sizeof(int));
+		if(fds[1].revents & POLLIN){  //si activité du serveur
+			struct message reponse;
+			int ret = read(client_fd, &reponse, sizeof(struct message));
 			if(0 == ret){
 				printf("Le serveur est déconnecté");
 				close(client_fd);
 				exit(EXIT_FAILURE);
 			}
 
-			int lu_serveur = read(client_fd, buffer, taille_msg);
+			int lu_serveur = read(client_fd, buffer, reponse.pld_len);
 			buffer[lu_serveur] = '\0';
 			printf("Serveur a lu et repond : %s\n", buffer);
 
