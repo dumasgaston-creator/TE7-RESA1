@@ -68,12 +68,10 @@ int main(int argc, char *argv[]){
 				exit(EXIT_SUCCESS);
 			}
 
-			else if(strncmp(buffer, "/nick ", 6) == 0){
+			else if(0 == strncmp(buffer, "/nick ", 6)){ // gestion du pseudo
 				struct message req;
 				memset(&req, 0, sizeof(struct message)); 
 				req.type = NICKNAME_NEW;
-
-				// remplissage info obligatoires
 				req.pld_len = 0;  //cf énoncé
 
 				strncpy(req.infos, buffer + 6, INFOS_LEN - 1);
@@ -102,6 +100,51 @@ int main(int argc, char *argv[]){
 				}
 			}
 
+			else if(0 == strcmp(buffer, "/who\n")){  // REQ 2.5
+				struct message req;
+				memset(&req, 0, sizeof(struct message)); 
+				req.type = NICKNAME_LIST;
+				req.pld_len = 0;
+				write(client_fd, &req, sizeof(struct message));
+			}
+
+			else if(0 == strncmp(buffer, "/whois ", 7)){  // REQ 2.6
+				struct message req;
+				memset(&req, 0, sizeof(struct message)); 
+				req.type = NICKNAME_INFOS;
+				req.pld_len = 0;
+				strncpy(req.infos, buffer + 7, INFOS_LEN - 1);
+				req.infos[strcspn(req.infos, "\n")] = '\0';
+				write(client_fd, &req, sizeof(struct message));
+			}
+
+			else if(0 == strncmp(buffer, "/msgall ", 8)){  // REQ 2.7
+				struct message req;
+				memset(&req, 0, sizeof(struct message)); 
+				req.type = BROADCAST_SEND;
+				req.pld_len = strlen(buffer + 8);
+				write(client_fd, &req, sizeof(struct message));
+				write(client_fd, buffer + 8, req.pld_len);
+			}
+
+			else if(0 == strncmp(buffer, "/msg ", 5)){  // REQ 2.9
+				char *ptr = strchr(buffer + 5, ' '); //pour gérer les epaces
+				if(NULL == ptr){  // on sait jamais
+					printf("pas de message\n");
+					continue;  // pour renvoyer au début du while
+				}
+				else{  //transmission message + pseudo destinatauire au serveur
+					struct message req;
+					memset(&req, 0, sizeof(struct message));
+					req.type = UNICAST_SEND;
+					strncpy(req.infos, buffer + 5, ptr - (buffer + 5));
+					req.infos[strcspn(req.infos, "\n")] = '\0';
+					req.pld_len = strlen(ptr + 1);
+					write(client_fd, &req, sizeof(struct message));
+					write(client_fd, ptr + 1, req.pld_len);
+				}
+			}
+
 			else{
 				struct message req;
 				memset(&req, 0, sizeof(struct message)); 
@@ -120,7 +163,7 @@ int main(int argc, char *argv[]){
 			struct message reponse;
 			int ret = read(client_fd, &reponse, sizeof(struct message));
 			if(0 == ret){
-				printf("Le serveur est déconnecté");
+				printf("Le serveur est déconnecté\n");
 				close(client_fd);
 				exit(EXIT_FAILURE);
 			}
