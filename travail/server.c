@@ -127,12 +127,14 @@ int main(int argc, char *argv[]) {
 				}
 				// Si on a reçu l'enveloppe (req)' on renvoie le meme message au client 
 				else if(lu_client > 0){
-					
-					// Si texte attacxhé à l'enveloppe
+					char *buffer = NULL;
+					// Si texte attaché à l'enveloppe
 					if (msg_recu.pld_len >0){
-						char buffer[msg_recu.pld_len + 1];
-						lu_client = read(fds[i].fd, buffer, msg_recu.pld_len +1);
-
+						buffer = malloc(msg_recu.pld_len + 1);
+						if(buffer != NULL){
+							lu_client = read(fds[i].fd, buffer, msg_recu.pld_len);
+							buffer[lu_client]='\0';
+						}
 					}
 					//CLient veut faire quoi
 					switch(msg_recu.type){
@@ -142,30 +144,30 @@ int main(int argc, char *argv[]) {
 						
 						case ECHO_SEND:
 							printf("Le client veut faire un echo \n");
-						break
+							write(fds[i].fd, &msg_recu, sizeof(struct message));
+							
+							// On renvoie le texte s'il y en a un
+							if (msg_recu.pld_len > 0 && buffer != NULL) {
+                                write(fds[i].fd, buffer, msg_recu.pld_len);
+                                printf("Client de la socket %d dit : %s\n", fds[i].fd, buffer);
+							}
+							break;
 
 						default :
 							printf("Cas non géré par le serveur \n");
-					}
-
-
+							break;
+					
 
 					
-					char buffer[taille_msg + 1];
-					lu_client = read (fds[i].fd, buffer, taille_msg);
-					buffer[lu_client]='\0';
-					int envoi_msg = write(fds[i].fd, &taille_msg,sizeof(int));
-					envoi_msg = write(fds[i].fd, buffer,taille_msg);
-						if(envoi_msg < 0){
-							perror("Erreur lors de l'envoi du msg\n");
-							close(fds[i].fd);
-						}
-					printf("Client de la socket %d dit : %s\n",fds[i].fd, buffer);
-
-				}
-				
+                    
+                }
+					if (buffer != NULL) {
+                        free(buffer);
+					}
+					
 			}
 		}
 	}
     return EXIT_SUCCESS;
+}
 }
