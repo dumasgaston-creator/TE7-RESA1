@@ -115,8 +115,8 @@ int main(int argc, char *argv[]) {
 			}
 		// si c le client existant qui envoie des données
 			else if (i > 0 && (fds[i].revents & POLLIN)){
-				int taille_msg;
-				int lu_client = read(fds[i].fd, &taille_msg, sizeof(int));
+				struct message msg_recu;
+				int lu_client = read(fds[i].fd, &msg_recu, sizeof(struct message));
 				
 				// Si client deconnecté ou erreur 
 				if (lu_client <= 0){
@@ -125,23 +125,49 @@ int main(int argc, char *argv[]) {
 					fds[i].fd = -1;
 					
 				}
-				// Si on a reçu la taille du message on renvoie le meme message au client 
+				// Si on a reçu l'enveloppe (req)' on renvoie le meme message au client 
 				else if(lu_client > 0){
-					char buffer[taille_msg + 1];
-					lu_client = read (fds[i].fd, buffer, taille_msg);
-					buffer[lu_client]='\0';
-					int envoi_msg = write(fds[i].fd, &taille_msg,sizeof(int));
-					envoi_msg = write(fds[i].fd, buffer,taille_msg);
-						if(envoi_msg < 0){
-							perror("Erreur lors de l'envoi du msg\n");
-							close(fds[i].fd);
+					char *buffer = NULL;
+					// Si texte attaché à l'enveloppe
+					if (msg_recu.pld_len >0){
+						buffer = malloc(msg_recu.pld_len + 1);
+						if(buffer != NULL){
+							lu_client = read(fds[i].fd, buffer, msg_recu.pld_len);
+							buffer[lu_client]='\0';
 						}
-					printf("Client de la socket %d dit : %s\n",fds[i].fd, buffer);
+					}
+					//CLient veut faire quoi
+					switch(msg_recu.type){
+						case NICKNAME_NEW:
+							printf ("Le client veut s'appeler : %s\n", msg_recu.infos);
+						break;
+						
+						case ECHO_SEND:
+							printf("Le client veut faire un echo \n");
+							write(fds[i].fd, &msg_recu, sizeof(struct message));
+							
+							// On renvoie le texte s'il y en a un
+							if (msg_recu.pld_len > 0 && buffer != NULL) {
+                                write(fds[i].fd, buffer, msg_recu.pld_len);
+                                printf("Client de la socket %d dit : %s\n", fds[i].fd, buffer);
+							}
+							break;
 
-				}
-				
+						default :
+							printf("Cas non géré par le serveur \n");
+							break;
+					
+
+					
+                    
+                }
+					if (buffer != NULL) {
+                        free(buffer);
+					}
+					
 			}
 		}
 	}
     return EXIT_SUCCESS;
+}
 }
