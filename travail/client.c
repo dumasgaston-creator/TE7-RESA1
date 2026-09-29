@@ -68,7 +68,7 @@ int main(int argc, char *argv[]){
 				exit(EXIT_SUCCESS);
 			}
 
-			else if(strncmp(buffer, "/nick ", 6) == 0){ // gestion du pseudo
+			else if(0 == strncmp(buffer, "/nick ", 6)){ // gestion du pseudo
 				struct message req;
 				memset(&req, 0, sizeof(struct message)); 
 				req.type = NICKNAME_NEW;
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]){
 				}
 			}
 
-			else if(strcmp(buffer, "/who\n") == 0){  // REQ 2.5
+			else if(0 == strcmp(buffer, "/who\n")){  // REQ 2.5
 				struct message req;
 				memset(&req, 0, sizeof(struct message)); 
 				req.type = NICKNAME_LIST;
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]){
 				write(client_fd, &req, sizeof(struct message));
 			}
 
-			else if(strncmp(buffer, "/whois ", 7) == 0){  // REQ 2.6
+			else if(0 == strncmp(buffer, "/whois ", 7)){  // REQ 2.6
 				struct message req;
 				memset(&req, 0, sizeof(struct message)); 
 				req.type = NICKNAME_INFOS;
@@ -116,6 +116,15 @@ int main(int argc, char *argv[]){
 				strncpy(req.infos, buffer + 7, INFOS_LEN - 1);
 				req.infos[strcspn(req.infos, "\n")] = '\0';
 				write(client_fd, &req, sizeof(struct message));
+			}
+
+			else if(0 == strncmp(buffer, "/msgall ", 8)){  // REQ 2.7
+				struct message req;
+				memset(&req, 0, sizeof(struct message)); 
+				req.type = BROADCAST_SEND;
+				req.pld_len = strlen(buffer + 8);
+				write(client_fd, &req, sizeof(struct message));
+				write(client_fd, buffer + 8, req.pld_len);
 			}
 
 			else{
