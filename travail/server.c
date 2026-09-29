@@ -140,6 +140,19 @@ int main(int argc, char *argv[]) {
 					switch(msg_recu.type){
 						case NICKNAME_NEW:
 							printf ("Le client veut s'appeler : %s\n", msg_recu.infos);
+							// Req2.1 : On cherche le client dans la liste pour lui donner son pseudo
+                            struct client_info *actuel = tete;
+                            while (actuel != NULL) {
+                                if (actuel->fd == fds[i].fd) {
+                                    // On a trouvé le bon client ! On copie le pseudo
+                                    strncpy(actuel->pseudo, msg_recu.infos, NICK_LEN);
+                                    actuel->pseudo[NICK_LEN - 1] = '\0'; // Sécurité pour forcer la fin de chaîne
+                                    printf("Succès : Le client sur la socket %d s'appelle maintenant %s\n", fds[i].fd, actuel->pseudo);
+                                    break; // On a trouvé, on arrête de chercher
+                                }
+                                actuel = actuel->next; 
+                            }
+                            break;
 						break;
 						
 						case ECHO_SEND:
@@ -160,7 +173,7 @@ int main(int argc, char *argv[]) {
 
 					
                     
-                }
+                	}
 					if (buffer != NULL) {
                         free(buffer);
 					}
@@ -169,5 +182,4 @@ int main(int argc, char *argv[]) {
 		}
 	}
     return EXIT_SUCCESS;
-}
 }
