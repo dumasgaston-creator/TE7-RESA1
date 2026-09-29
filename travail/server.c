@@ -133,11 +133,19 @@ int main(int argc, char *argv[]) {
 						buffer = malloc(msg_recu.pld_len + 1);
 						if(buffer != NULL){
 							lu_client = read(fds[i].fd, buffer, msg_recu.pld_len);
-							buffer[lu_client]='\0';
+							if (lu_client >= 0) 
+								buffer[lu_client]='\0';
+							
+
+    
 						}
 					}
+
+
 					//CLient veut faire quoi
+
 					switch(msg_recu.type){
+						// CLIENT CHANGE DE PSEUDO
 						case NICKNAME_NEW:
 							printf ("Le client veut s'appeler : %s\n", msg_recu.infos);
 							// Req2.1 : On cherche le client dans la liste pour lui donner son pseudo
@@ -146,6 +154,7 @@ int main(int argc, char *argv[]) {
                                 if (actuel->fd == fds[i].fd) {
                                     // On a trouvé le bon client ! On copie le pseudo
                                     strncpy(actuel->pseudo, msg_recu.infos, NICK_LEN);
+				
                                     actuel->pseudo[NICK_LEN - 1] = '\0'; // Sécurité pour forcer la fin de chaîne
                                     printf("Succès : Le client sur la socket %d s'appelle maintenant %s\n", fds[i].fd, actuel->pseudo);
                                     break; // On a trouvé, on arrête de chercher
@@ -154,7 +163,31 @@ int main(int argc, char *argv[]) {
                             }
                             break;
 						break;
+						// CLIENT DIFFUSE UN MESSAGE
+						case BROADCAST_SEND : 
 						
+							while (actuel != NULL){
+								if( actuel -> fd == fds[i].fd){
+									strncpy(msg_recu.nick_sender, actuel->pseudo, NICK_LEN);
+									msg_recu.nick_sender[NICK_LEN - 1]= '\0';
+									printf("Super, le client sur la socket %d envoie le message : %s", fds[i].fd, actuel->pseudo);
+									//boucle pour envoyer à tt le monde
+									for (int j = 1; j < MAX_CLIENTS; j++){
+										if(fds[j].fd != -1 && fds[j].fd != fds[i].fd){
+											write(fds[j].fd, &msg_recu, sizeof(struct message));
+											if (msg_recu.pld_len != 0)
+												write(fds[j].fd, buffer, msg_recu.pld_len);
+										}
+									
+									}
+									break;
+								
+								}
+								actuel = actuel->next;
+							}
+					
+							
+							break;
 						case ECHO_SEND:
 							printf("Le client veut faire un echo \n");
 							write(fds[i].fd, &msg_recu, sizeof(struct message));
@@ -165,7 +198,8 @@ int main(int argc, char *argv[]) {
                                 printf("Client de la socket %d dit : %s\n", fds[i].fd, buffer);
 							}
 							break;
-
+						
+						
 						default :
 							printf("Cas non géré par le serveur \n");
 							break;
@@ -178,8 +212,9 @@ int main(int argc, char *argv[]) {
                         free(buffer);
 					}
 					
+				}
 			}
 		}
-	}
     return EXIT_SUCCESS;
+	}
 }
