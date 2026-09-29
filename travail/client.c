@@ -127,6 +127,24 @@ int main(int argc, char *argv[]){
 				write(client_fd, buffer + 8, req.pld_len);
 			}
 
+			else if(0 == strncmp(buffer, "/msg ", 5)){  // REQ 2.9
+				char *ptr = strchr(buffer + 5, ' '); //pour gérer les epaces
+				if(NULL == ptr){  // on sait jamais
+					printf("pas de message\n");
+					continue;  // pour renvoyer au début du while
+				}
+				else{  //transmission message + pseudo destinatauire au serveur
+					struct message req;
+					memset(&req, 0, sizeof(struct message));
+					req.type = UNICAST_SEND;
+					strncpy(req.infos, buffer + 5, ptr - (buffer + 5));
+					req.infos[strcspn(req.infos, "\n")] = '\0';
+					req.pld_len = strlen(ptr + 1);
+					write(client_fd, &req, sizeof(struct message));
+					write(client_fd, ptr + 1, req.pld_len);
+				}
+			}
+
 			else{
 				struct message req;
 				memset(&req, 0, sizeof(struct message)); 
