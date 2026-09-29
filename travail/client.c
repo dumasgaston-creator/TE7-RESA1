@@ -68,12 +68,10 @@ int main(int argc, char *argv[]){
 				exit(EXIT_SUCCESS);
 			}
 
-			else if(strncmp(buffer, "/nick ", 6) == 0){
+			else if(strncmp(buffer, "/nick ", 6) == 0){ // gestion du pseudo
 				struct message req;
 				memset(&req, 0, sizeof(struct message)); 
 				req.type = NICKNAME_NEW;
-
-				// remplissage info obligatoires
 				req.pld_len = 0;  //cf énoncé
 
 				strncpy(req.infos, buffer + 6, INFOS_LEN - 1);
@@ -102,6 +100,24 @@ int main(int argc, char *argv[]){
 				}
 			}
 
+			else if(strcmp(buffer, "/who\n") == 0){  // REQ 2.5
+				struct message req;
+				memset(&req, 0, sizeof(struct message)); 
+				req.type = NICKNAME_LIST;
+				req.pld_len = 0;
+				write(client_fd, &req, sizeof(struct message));
+			}
+
+			else if(strncmp(buffer, "/whois ", 7) == 0){  // REQ 2.6
+				struct message req;
+				memset(&req, 0, sizeof(struct message)); 
+				req.type = NICKNAME_INFOS;
+				req.pld_len = 0;
+				strncpy(req.infos, buffer + 7, INFOS_LEN - 1);
+				req.infos[strcspn(req.infos, "\n")] = '\0';
+				write(client_fd, &req, sizeof(struct message));
+			}
+
 			else{
 				struct message req;
 				memset(&req, 0, sizeof(struct message)); 
@@ -120,7 +136,7 @@ int main(int argc, char *argv[]){
 			struct message reponse;
 			int ret = read(client_fd, &reponse, sizeof(struct message));
 			if(0 == ret){
-				printf("Le serveur est déconnecté");
+				printf("Le serveur est déconnecté\n");
 				close(client_fd);
 				exit(EXIT_FAILURE);
 			}
