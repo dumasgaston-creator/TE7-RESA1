@@ -109,25 +109,55 @@ int main(int argc, char *argv[]) {
 					if (fds[j].fd == -1){
 						fds[j].fd = client_fd;
 						fds[j].events = POLLIN;
+						fds[j].revents = 0;
 						break;
 					}
 				}
 			}
 		// si c le client existant qui envoie des données
 			else if (i > 0 && (fds[i].revents & POLLIN)){
+
 				struct message msg_recu;
+				char *buffer = NULL;
+				struct client_info *actuel = NULL;
+
 				int lu_client = read(fds[i].fd, &msg_recu, sizeof(struct message));
 				
+				
 				// Si client deconnecté ou erreur 
-				if (lu_client <= 0){
-					printf("Client de la socekt %d s'est deconnecté\n", fds[i].fd);
-					close(fds[i].fd);
-					fds[i].fd = -1;
-					
-				}
+                if (lu_client <= 0){
+                    printf("Client de la socket %d s'est deconnecté\n", fds[i].fd);
+                    
+                    // req
+                    // Cas 1 : Le client à supprimer est la tête
+                    if (tete != NULL && tete->fd == fds[i].fd) {
+                        struct client_info *a_supprimer = tete;
+                        tete = tete->next; // La tête devient le maillon suivant
+                        free(a_supprimer); // On détruit l'ancien
+                    } 
+                    // Cas 2 : Le client est au milieu ou à la fin
+                    else if (tete != NULL) {
+                        struct client_info *prec = tete;
+                        actuel = tete->next;
+                        
+                        while (actuel != NULL) {
+                            if (actuel->fd == fds[i].fd) {
+                                prec->next = actuel->next; // On raccorde le précédent au suivant (on "saute" le client actuel)
+                                free(actuel); 
+                                break;
+                            }
+                      
+                            prec = actuel;
+                            actuel = actuel->next;
+                        }
+                    }
+
+                    close(fds[i].fd);
+                    fds[i].fd = -1;
+                }
 				// Si on a reçu l'enveloppe (req)' on renvoie le meme message au client 
 				else if(lu_client > 0){
-					char *buffer = NULL;
+					
 					// Si texte attaché à l'enveloppe
 					if (msg_recu.pld_len >0){
 						buffer = malloc(msg_recu.pld_len + 1);
@@ -143,13 +173,13 @@ int main(int argc, char *argv[]) {
 
 
 					//CLient veut faire quoi
-
+					
 					switch(msg_recu.type){
 						// CLIENT CHANGE DE PSEUDO
 						case NICKNAME_NEW:
 							printf ("Le client veut s'appeler : %s\n", msg_recu.infos);
 							// Req2.1 : On cherche le client dans la liste pour lui donner son pseudo
-                            struct client_info *actuel = tete;
+							actuel = tete;
                             while (actuel != NULL) {
                                 if (actuel->fd == fds[i].fd) {
                                     // On a trouvé le bon client ! On copie le pseudo
@@ -162,10 +192,10 @@ int main(int argc, char *argv[]) {
                                 actuel = actuel->next; 
                             }
                             break;
-						break;
+
 						// CLIENT DIFFUSE UN MESSAGE
 						case BROADCAST_SEND : 
-						
+							actuel = tete;
 							while (actuel != NULL){
 								if( actuel -> fd == fds[i].fd){
 									strncpy(msg_recu.nick_sender, actuel->pseudo, NICK_LEN);
@@ -187,6 +217,43 @@ int main(int argc, char *argv[]) {
 							}
 					
 							
+							break;
+						case UNICAST_SEND : 
+							printf("Le client veut envoyer un message privé à : %s\n", msg_recu.infos);
+							//trouver expediteur
+							actuel = tete;
+							while(actuel!=NULL){
+								if (actuel-> fd == fds[i].fd){
+									strncpy(msg_recu.nick_sender, actuel->pseudo, NICK_LEN);
+									msg_recu.nick_sender[NICK_LEN-1]='\0';
+									break;
+									
+								}
+								actuel = actuel->next;
+							}
+							// trouver le destinataire
+								int trouve = 0;
+								actuel = tete;
+								while (actuel != NULL){
+									if (strcmp(actuel->pseudo, msg_recu.infos) == 0){
+										trouve = 1;
+
+										write(actuel->fd, &msg_recu, sizeof(struct message));
+										// si texte on envoit
+										if(msg_recu.pld_len > 0){
+											write(actuel->fd, buffer, msg_recu.pld_len);
+										}
+										break;
+									}
+									actuel = actuel->next;
+								}
+								if(trouve == 0){
+									priintf("Impossible de livrer : le client '%s' n'existe pas .\n", msg_recu.infos);
+									
+								}
+
+							
+
 							break;
 						case ECHO_SEND:
 							printf("Le client veut faire un echo \n");
@@ -215,6 +282,6 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		}
-    return EXIT_SUCCESS;
-	}
+    }
+	return EXIT_SUCCESS;
 }
