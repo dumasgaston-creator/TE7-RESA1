@@ -80,18 +80,19 @@ int main(int argc, char *argv[]){
 				req.infos[strcspn(req.infos, "\n")] = '\0';
 
 				// Vérif de la validité du pseudo
-				int valide = 1;
+				int valide __attribute__((unused)) = 1;
 				int len = strlen(req.infos);
 				if(0 == len || len >= NICK_LEN){ //verif longueur
-					int valide = 0;
+					valide = 0;
 					printf("Pseudo vide ou trop long\n");
 				}
 				else{
-					for(int i = 0; i << len; i++){   //verif caractères
+					for(int i = 0; i < len; i++){   //verif caractères
 						if(!isalnum(req.infos[i])){
                             valide = 0;
                             printf("Erreur : Le pseudo ne doit contenir que des lettres et des chiffres.\n");
                             break;
+						}
 					}
 				}
 
