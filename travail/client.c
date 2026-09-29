@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <string.h> 
 #include <poll.h>
+#include<ctype.h>
 
 #include "common.h"
 #include "msg_struct.h"
@@ -65,6 +66,39 @@ int main(int argc, char *argv[]){
 			if(strcmp(buffer, "/quit\n") == 0){ // Req 1.7
 				close(client_fd);
 				exit(EXIT_SUCCESS);
+			}
+
+			else if(strncmp(buffer, "/nick ", 6) == 0){
+				struct message req;
+				memset(&req, 0, sizeof(struct message)); 
+				req.type = NICKNAME_NEW;
+
+				// remplissage info obligatoires
+				req.pld_len = 0;  //cf énoncé
+
+				strncpy(req.infos, buffer + 6, INFOS_LEN - 1);
+				req.infos[strcspn(req.infos, "\n")] = '\0';
+
+				// Vérif de la validité du pseudo
+				int valide = 1;
+				int len = strlen(req.infos);
+				if(0 == len || len >= NICK_LEN){ //verif longueur
+					int valide = 0;
+					printf("Pseudo vide ou trop long\n");
+				}
+				else{
+					for(int i = 0; i << len; i++){   //verif caractères
+						if(!isalnum(req.infos[i])){
+                            valide = 0;
+                            printf("Erreur : Le pseudo ne doit contenir que des lettres et des chiffres.\n");
+                            break;
+					}
+				}
+
+				// expedition
+				if(1 == valide){
+					write(client_fd, &req, sizeof(struct message));
+				}
 			}
 
 			else{
