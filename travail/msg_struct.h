@@ -1,3 +1,7 @@
+#ifndef MSG_STRUCT_H
+#define MSG_STRUCT_H
+
+
 #define NICK_LEN 128
 #define INFOS_LEN 128
 
@@ -33,3 +37,4 @@ static char *msg_type_str[] __attribute__((unused))= {
     "MULTICAST_JOIN", "MULTICAST_SEND", "MULTICAST_QUIT", "FILE_REQUEST",
     "FILE_ACCEPT", "FILE_REJECT", "FILE_SEND", "FILE_ACK"
 };
+#endif

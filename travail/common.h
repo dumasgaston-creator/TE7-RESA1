@@ -10,10 +10,3 @@ struct info{
     long l;
 };
 
-void die(int ret, char* msg){
-	if(ret<0){
-		perror(msg);
-		exit(EXIT_FAILURE);
-	}
-
-}
