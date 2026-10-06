@@ -7,7 +7,7 @@
 
 struct client_info* ajouter_nouveau_client(struct client_info *tete, int fd_client, int port_client, char *ip_client){
     #if DEBUG == 1
-        printf("[DEBUG] ajouter_nouveau_cleint : Création de la fiche pour le fd %d\n, fd_client");
+        printf("[DEBUG] ajouter_nouveau_cleint : Création de la fiche pour le fd %d\n", fd_client);
     #endif
 
     struct client_info *nouveau = malloc(sizeof(struct client_info));
