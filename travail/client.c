@@ -145,6 +145,13 @@ int main(int argc, char *argv[]){
 				}
 			}
 
+			else if(0 == strncmp(buffer, "/send ", 6)){
+				struct message req;
+				memset(&req, 0, sizeof(struct message));
+				req.type = FILE_REQUEST;
+				req.pld_len = strlen(buffer + 6);
+			}
+
 			else{
 				struct message req;
 				memset(&req, 0, sizeof(struct message)); 
