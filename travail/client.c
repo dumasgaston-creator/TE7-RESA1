@@ -177,16 +177,16 @@ int main(int argc, char *argv[]){
 
 			int lu_serveur = read(client_fd, buffer, reponse.pld_len);
 			buffer[lu_serveur] = '\0';
-			// On personnalise l'affichage selon le type de message reçu !
-            if (msg_recu.type == UNICAST_SEND) {
+			// Personnalisation
+            if (reponse.type == UNICAST_SEND) {
                 // Message privé
-                printf("[Message privé de %s] : %s\n", msg_recu.nick_sender, buffer);
+                printf("[Message privé de %s] : %s\n", reponse.nick_sender, buffer);
             } 
-            else if (msg_recu.type == BROADCAST_SEND) {
+            else if (reponse.type == BROADCAST_SEND) {
                 // Message public
-                printf("[%s] : %s\n", msg_recu.nick_sender, buffer);
+                printf("[%s] : %s\n", reponse.nick_sender, buffer);
             } 
-            else if (msg_recu.type == NICKNAME_LIST) {
+            else if (reponse.type == NICKNAME_LIST) {
                 // (who)
                 printf("[Info Serveur] :\n%s\n", buffer);
             } 
