@@ -61,6 +61,24 @@ int main(int argc, char *argv[]){
                         printf("Erreur : pas de message fourni\n");
                     }
                 }
+                else if(0 == strncmp(buffer, "/send ", 6)){
+                    char *ptr = strchr(buffer + 6, ' ');
+                    if (ptr != NULL) {
+                        *ptr = '\0';
+                    }
+                        char *chemin_complet = strchr(ptr + 1, '\n');
+                        if (chemin_complet != NULL) {
+                            *chemin_complet = '\0';
+                        }
+                        char *nom_fichier = chemin_complet;
+                        char *dernier_slash = strrchr(chemin_complet, '/');
+        
+                        if (dernier_slash != NULL) {
+                            nom_fichier = dernier_slash + 1;
+                        }
+                        envoyer_requete(client_fd, FILE_REQUEST, buffer + 6, ptr + 1, strlen(ptr + 1));
+                        *ptr = ' '; 
+                }
                 else {
                     envoyer_requete(client_fd, ECHO_SEND, NULL, buffer, lu);
                 }  

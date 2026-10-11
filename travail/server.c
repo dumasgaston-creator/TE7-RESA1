@@ -248,7 +248,7 @@ int main(int argc, char *argv[]) {
 									actuel = actuel->next;
 								}
 								if(trouve == 0){
-									priintf("Impossible de livrer : le client '%s' n'existe pas .\n", msg_recu.infos);
+									printf("Impossible de livrer : le client '%s' n'existe pas .\n", msg_recu.infos);
 									
 								}
 
