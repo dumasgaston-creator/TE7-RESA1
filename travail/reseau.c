@@ -1,4 +1,5 @@
 #include "client.h"
+#include <fcntl.h>
 
 int initialiser_connexion(const char *ip, const char *port_str) {
     int client_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -39,4 +40,42 @@ int initialiser_serveur_client(int port) {
     printf("Serveur - Client temporaire en écoute sur le port %d...\n", port);
     
     return listen_fd; //ce qu'on veut quoi
+}
+
+void recevoir_fichier(int socket_emetteur, const char *nom_fichier) {
+    // notre fichier
+    int fd_fichier = open(nom_fichier, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    
+    if (fd_fichier < 0) {
+        perror("Erreur lors de la création du fichier sur le disque");
+        //si peut pas
+        close(socket_emetteur);
+        return; 
+    }
+
+    char buffer_fichier[BUFFER_SIZE];
+    ssize_t octets_recus; //signed
+
+    printf("Début du téléchargement du fichier '%s'...\n", nom_fichier);
+
+    while ((octets_recus = read(socket_emetteur, buffer_fichier, BUFFER_SIZE)) > 0) {
+        
+        // éccit nb octets
+        ssize_t octets_ecrits = write(fd_fichier, buffer_fichier, octets_recus);
+        
+        if (octets_ecrits < 0) {
+            perror("Erreur pendant l'écriture sur le disque (disque plein ?)");
+            break;
+        }
+    }
+
+    // verif
+    if (octets_recus < 0) {
+        perror("Erreur réseau pendant la réception");
+    } else {
+        printf("Transfert terminé avec succès. Fichier '%s' enregistré.\n", nom_fichier);
+    }
+
+    close(fd_fichier);
+    close(socket_emetteur);
 }
