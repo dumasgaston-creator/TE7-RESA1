@@ -11,7 +11,7 @@ int main(int argc, char *argv[]){
 	int client_fd = initialiser_connexion(argv[1], argv[2]);
 
 	// Req 1.5
-	struct pollfd fds[2];
+	struct pollfd fds[3];
 	fds[0].fd = 0;
     fds[0].events = POLLIN;
 	fds[0].revents = 0;
@@ -20,8 +20,18 @@ int main(int argc, char *argv[]){
     fds[1].events = POLLIN;
 	fds[1].revents = 0;
 
+    fds[2].fd = -1; // pour que poll ignore
+    fds[2].events = POLLIN;
+    fds[2].revents = 0;
+
 	// Req 1.4
 	char buffer[BUFFER_SIZE];
+
+    // comm entre clients
+    int attente_transfert = 0;
+    char demandeur[INFOS_LEN] = {0};
+    char fichier_attendu[BUFFER_SIZE] = {0};
+
 	while(1){
 		int nbfds = poll(fds, 2, -1);
 		if(-1 == nbfds){
@@ -32,6 +42,35 @@ int main(int argc, char *argv[]){
 
 			int lu = read(0, buffer, BUFFER_SIZE - 1);
 			buffer[lu] = '\0';
+
+            if(1 == attente_transfert){
+                if (buffer[0] == 'N' || buffer[0] == 'n'){
+                    envoyer_requete(client_fd, FILE_REJECT, demandeur, NULL, 0);
+                    attente_transfert = 0;
+                }
+                else if (buffer[0] == 'Y' || buffer[0] == 'y'){
+                    int port = 8081; 
+                    int listen_fd = initialiser_serveur_client(port); // socket de nos clients
+
+                    // Préparation adresse à envoyer
+                    char adresse[BUFFER_SIZE];
+                    sprintf(adresse, "127.0.0.1:%d", port);
+
+                    // Envoi du FILE_ACCEPT
+                    envoyer_requete(client_fd, FILE_ACCEPT, demandeur, adresse, strlen(adresse));
+    
+                    printf("Transfert accepté. En attente de la connexion...\n");
+
+                    attente_transfert = 0;
+
+                    fds[2].fd = listen_fd; // hop écoute
+                }
+                else{
+                    printf("Veuillez répondre par Y ou N :  ");
+                    //fflush(stdout);
+                }
+                continue;
+            }
 
 			if (strcmp(buffer, "/quit\n") == 0) {
                     close(client_fd);
@@ -85,7 +124,23 @@ int main(int argc, char *argv[]){
         }
 
 		if(fds[1].revents & POLLIN){  //si activité du serveur
-			traiter_reception_serveur(client_fd, buffer);
+			traiter_reception_serveur(client_fd, buffer, &attente_transfert, demandeur, fichier_attendu);
 		}
 	}
+
+    if(fds[2].revents & POLLIN){  //qqn se connecte
+        struct sockaddr_in adresse_emetteur;
+        socklen_t taille_adresse = sizeof(adresse_emetteur);
+
+        // accept + tuyau
+        int socket_emetteur = accept(fds[2].fd, (struct sockaddr *)&adresse_emetteur, &taille_adresse);
+        die(socket_emetteur, "erreur accept emetteur");
+
+        printf("L'émetteur est connecté ! Prêt à recevoir le fichier.\n");
+
+        // TODO
+
+        close(fds[2].fd); 
+        fds[2].fd = -1; // re désactive
+    }
 }

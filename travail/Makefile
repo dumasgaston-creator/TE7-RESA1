@@ -4,7 +4,7 @@
 # clean:
 # 	rm -f client server
 
-CFLAGS=-Wall
+CFLAGS=-Wall -Werror
 LDFLAGS=-lpthread
 
 all: client server

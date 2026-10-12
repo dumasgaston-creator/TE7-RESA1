@@ -65,7 +65,7 @@ void afficher_message_serveur(struct message reponse, const char *texte) {
     }
 }
 
-void traiter_reception_serveur(int client_fd, char *texte) {
+void traiter_reception_serveur(int client_fd, char *texte, int *attente, char *demandeur, char *fichier) {
     struct message reponse;
     int ret = read(client_fd, &reponse, sizeof(struct message));
     
@@ -80,10 +80,21 @@ void traiter_reception_serveur(int client_fd, char *texte) {
     if (reponse.pld_len > 0) {
         int lu_serveur = read(client_fd, buffer, reponse.pld_len);
         buffer[lu_serveur] = '\0';
-    } else {
+    }
+    
+    else {
         buffer[0] = '\0'; // si rien reçu vide buffer
     }
 
-    // pour fair ejoli
-    afficher_message_serveur(reponse, buffer);
+    if (reponse.type == FILE_REQUEST) { //transfert fichier
+        *attente = 1;
+        strncpy(demandeur, reponse.nick_sender, INFOS_LEN - 1);
+        strncpy(fichier, texte, BUFFER_SIZE - 1);
+        printf("%s veut vous envoyer %s. Acceptez-vous ? [Y/N] : ", demandeur, fichier);
+        //fflush(stdout);
+    }
+    else {
+        //pour fair ejoli
+        afficher_message_serveur(reponse, texte);
+    }
 }
