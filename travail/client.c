@@ -9,7 +9,21 @@ int main(int argc, char *argv[]){
 	}
 
 	int client_fd = initialiser_connexion(argv[1], argv[2]);
-
+	printf("===================================================\n");
+    printf("🇧🇷🇧🇷 🇧🇷  Bienvenue sur le serveur BRAZIL'EIRB de LAGAST et MATHIS !🇧🇷🇧🇷 🇧🇷 \n");
+    printf("  Action requise : Définis ton nom avec la commande\n");
+    printf("    /nick <ton_pseudo>\n");
+    printf("---------------------------------------------------\n");
+    printf(" Liste des commandes disponibles :\n");
+    printf("  /nick <pseudo>       : Changer ton nom\n");
+    printf("  /who                 : Voir les personnes connectées\n");
+    printf("  /whois <pseudo>      : Voir les infos d'un membre\n");
+    printf("  /msgall <message>    : Envoyer un message public\n");
+    printf("  /msg <pseudo> <msg>  : Envoyer un message privé\n");
+    printf("  /send <pseudo> <fic> : Envoyer un fichier \n");
+    printf("  /quit                : Quitter le serveur\n");
+    printf("===================================================\n");
+    fflush(stdout); // Force l'affichage immédiat
 	// Req 1.5
 	struct pollfd fds[3];
 	fds[0].fd = 0;
