@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
                     }
 
                     printf("Demande d'envoi du fichier '%s'...\n", nom_fichier);
-                    envoyer_requete(client_fd, FILE_REQUEST, buffer + 6, chemin_complet, strlen(chemin_complet));
+                    envoyer_requete(client_fd, FILE_REQUEST, buffer + 6, nom_fichier, strlen(chemin_complet));
                     *ptr = ' '; 
                 }
                 else {

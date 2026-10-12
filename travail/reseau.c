@@ -64,7 +64,7 @@ void recevoir_fichier(int socket_emetteur, const char *nom_fichier) {
         ssize_t octets_ecrits = write(fd_fichier, buffer_fichier, octets_recus);
         
         if (octets_ecrits < 0) {
-            perror("Erreur pendant l'écriture sur le disque (disque plein ?)");
+            perror("Erreur pendant l'écriture sur le disque");
             break;
         }
     }
