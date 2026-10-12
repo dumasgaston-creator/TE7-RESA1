@@ -33,5 +33,8 @@ int demarrer_serveur_ecoute(int port){
     int ret_value = bind(listen_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
     die(ret_value,"erreur bind");
 
+    ret_value = listen(listen_fd, SOMAXCONN);
+    die (ret_value, "erreur listen");
+
     return listen_fd; 
 }
