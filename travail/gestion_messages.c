@@ -81,10 +81,6 @@ void traiter_reception_serveur(int client_fd, char *texte, int *attente, char *d
         int lu_serveur = read(client_fd, buffer, reponse.pld_len);
         buffer[lu_serveur] = '\0';
     }
-    
-    else {
-        buffer[0] = '\0'; // si rien reçu vide buffer
-    }
 
     if (reponse.type == FILE_REQUEST) { //transfert fichier
         *attente = 1;
