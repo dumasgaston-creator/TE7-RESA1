@@ -4,7 +4,7 @@
 #include "msg_struct.h"
 #include "gestion_clients.h"
 
-
+void envoyer_infos_client(struct client_info *tete, int fd_demandeur, char *pseudo_cible);
 void traiter_nouveau_pseudo(struct client_info *tete, int fd_client, struct message *msg);
 void diffuser_message_public(struct client_info *tete, int fd_expediteur, struct message *msg, char *buffer);
 void envoyer_message_prive(struct client_info *tete, int fd_expediteur, struct message *msg, char *buffer);

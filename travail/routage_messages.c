@@ -2,6 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "routage_messages.h"
+#include "common.h"
 
 #define DEBUG 1
 
@@ -96,6 +97,32 @@ void envoyer_annuaire_clients(struct client_info *tete, int fd_demandeur){
     reponse_serveur.pld_len = strlen(buf);
     strncpy(reponse_serveur.nick_sender, "Serveur", NICK_LEN);
     reponse_serveur.nick_sender[NICK_LEN-1]= '\0';
+
+    write(fd_demandeur, &reponse_serveur, sizeof(struct message));
+    write(fd_demandeur, buf, reponse_serveur.pld_len);
+}
+
+void envoyer_infos_client(struct client_info *tete, int fd_demandeur, char *pseudo_cible){
+    #if DEBUG == 1
+        printf("[DEBUG] routage : Le fd %d demande un WHOIS sur '%s'\n", fd_demandeur, pseudo_cible);
+    #endif
+
+    char buf[MSG_LEN];
+    struct client_info *cible = chercher_client_par_pseudo(tete, pseudo_cible);
+    
+    if (NULL != cible){
+        // Si client trouvé
+        sprintf(buf, "L'utilisateur %s est connecté depuis l'IP %s sur le port %d", cible->pseudo, cible->ip, cible->port);
+
+    }else{
+        sprintf(buf, "erreur : l'utilisateur '%s' est introuvable.", cible->pseudo);
+    }
+    struct message reponse_serveur;
+    memset(&reponse_serveur, 0, sizeof(struct message));
+    reponse_serveur.type = NICKNAME_INFOS;
+    reponse_serveur.pld_len = strlen(buf);
+    strncpy(reponse_serveur.nick_sender, "Serveur", NICK_LEN);
+    reponse_serveur.nick_sender[NICK_LEN -1]='\0';
 
     write(fd_demandeur, &reponse_serveur, sizeof(struct message));
     write(fd_demandeur, buf, reponse_serveur.pld_len);

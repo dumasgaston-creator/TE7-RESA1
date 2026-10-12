@@ -112,6 +112,10 @@ int main(int argc, char *argv[]) {
                         case FILE_REJECT : 
                             envoyer_message_prive(tete, fds[i].fd, &msg_recu, buffer);
                             break;
+                        // Demande infos sur utilisateur
+                        case NICKNAME_INFOS:
+                            envoyer_infos_client(tete, fds[i].fd, msg_recu.infos);
+                            break;
                             
                         // DEMANDE LISTE DES UTILISATEURS
                         case NICKNAME_LIST:
