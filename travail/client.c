@@ -33,7 +33,7 @@ int main(int argc, char *argv[]){
     char fichier_attendu[BUFFER_SIZE] = {0};
 
 	while(1){
-		int nbfds = poll(fds, 2, -1);
+		int nbfds = poll(fds, 3, -1);
 		if(-1 == nbfds){
 			perror("Interruption");
 		}
@@ -102,21 +102,27 @@ int main(int argc, char *argv[]){
                 }
                 else if(0 == strncmp(buffer, "/send ", 6)){
                     char *ptr = strchr(buffer + 6, ' ');
-                    if (ptr != NULL) {
-                        *ptr = '\0';
+                    if (ptr == NULL) { //segfault si pas d'argument après /send sans ça
+                        printf("Erreur de syntaxe. Utilisation : /send <pseudo> <fichier>\n");
+                        continue; // on reprend au début
                     }
-                        char *chemin_complet = strchr(ptr + 1, '\n');
-                        if (chemin_complet != NULL) {
-                            *chemin_complet = '\0';
-                        }
-                        char *nom_fichier = chemin_complet;
-                        char *dernier_slash = strrchr(chemin_complet, '/');
+                    *ptr = '\0';
+
+                    char *chemin_complet = ptr + 1;
+                    char *newline = strchr(chemin_complet, '\n');
+                    if (newline != NULL) {
+                        *newline = '\0';
+                    }
+                    char *nom_fichier = chemin_complet;
+                    char *dernier_slash = strrchr(chemin_complet, '/');
         
-                        if (dernier_slash != NULL) {
-                            nom_fichier = dernier_slash + 1;
-                        }
-                        envoyer_requete(client_fd, FILE_REQUEST, buffer + 6, ptr + 1, strlen(ptr + 1));
-                        *ptr = ' '; 
+                    if (dernier_slash != NULL) {
+                        nom_fichier = dernier_slash + 1;
+                    }
+
+                    printf("Demande d'envoi du fichier '%s'...\n", nom_fichier);
+                    envoyer_requete(client_fd, FILE_REQUEST, buffer + 6, chemin_complet, strlen(chemin_complet));
+                    *ptr = ' '; 
                 }
                 else {
                     envoyer_requete(client_fd, ECHO_SEND, NULL, buffer, lu);
@@ -126,21 +132,22 @@ int main(int argc, char *argv[]){
 		if(fds[1].revents & POLLIN){  //si activité du serveur
 			traiter_reception_serveur(client_fd, buffer, &attente_transfert, demandeur, fichier_attendu);
 		}
-	}
 
-    if(fds[2].revents & POLLIN){  //qqn se connecte
-        struct sockaddr_in adresse_emetteur;
-        socklen_t taille_adresse = sizeof(adresse_emetteur);
+        if(fds[2].revents & POLLIN){  //qqn se connecte
+            struct sockaddr_in adresse_emetteur;
+            socklen_t taille_adresse = sizeof(adresse_emetteur);
 
-        // accept + tuyau
-        int socket_emetteur = accept(fds[2].fd, (struct sockaddr *)&adresse_emetteur, &taille_adresse);
-        die(socket_emetteur, "erreur accept emetteur");
+            // accept + tuyau
+            int socket_emetteur = accept(fds[2].fd, (struct sockaddr *)&adresse_emetteur, &taille_adresse);
+            die(socket_emetteur, "erreur accept emetteur");
 
-        printf("L'émetteur est connecté ! Prêt à recevoir le fichier.\n");
+            printf("L'émetteur est connecté ! Prêt à recevoir le fichier.\n");
 
-        // TODO
+            recevoir_fichier(socket_emetteur, fichier_attendu);
 
-        close(fds[2].fd); 
-        fds[2].fd = -1; // re désactive
+            close(fds[2].fd); 
+            fds[2].fd = -1; // re désactive
+	    }
     }
+    
 }
