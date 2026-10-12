@@ -1,7 +1,7 @@
 #include "client.h"
 #include <fcntl.h>
 
-int initialiser_connexion(const char *ip, const char *port_str) {
+int initialiser_connexion(const char *ip, const char *port_str){
     int client_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (-1 == client_fd) {
         perror("Erreur création de la socket");
@@ -21,7 +21,7 @@ int initialiser_connexion(const char *ip, const char *port_str) {
     return client_fd;
 }
 
-int initialiser_serveur_client(int port) {
+int initialiser_serveur_client(int port){
     struct sockaddr_in client_addr;
     memset(&client_addr, 0, sizeof(client_addr));
     client_addr.sin_family = AF_INET;
@@ -42,7 +42,32 @@ int initialiser_serveur_client(int port) {
     return listen_fd; //ce qu'on veut quoi
 }
 
-void recevoir_fichier(int socket_emetteur, const char *nom_fichier) {
+void envoyer_fichier(const char *ip, const char *port_str, const char *chemin_fichier) {
+    int fd_fichier = open(chemin_fichier, O_RDONLY);
+    if (fd_fichier < 0) {
+        perror("Erreur ouverture du fichier à envoyer");
+        return;
+    }
+
+    printf("Connexion directe au destinataire %s:%s...\n", ip, port_str);
+    
+    // On crée la socket pour le destinataire
+    int sock_dest = initialiser_connexion(ip, port_str);
+
+    char buffer_transfert[BUFFER_SIZE];
+    ssize_t octets_lus;
+    
+    printf("Transfert en cours...\n");
+    while ((octets_lus = read(fd_fichier, buffer_transfert, BUFFER_SIZE)) > 0) {
+        write(sock_dest, buffer_transfert, octets_lus);
+    }
+
+    printf("Transfert terminé avec succès !\n");
+    close(fd_fichier);
+    close(sock_dest);
+}
+
+void recevoir_fichier(int socket_emetteur, const char *nom_fichier){
     // notre fichier
     int fd_fichier = open(nom_fichier, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     

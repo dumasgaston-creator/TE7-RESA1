@@ -4,5 +4,6 @@
 int initialiser_connexion(const char *ip, const char *port_str);
 int initialiser_serveur_client(int port);
 void recevoir_fichier(int socket_emetteur, const char *nom_fichier);
+void envoyer_fichier(const char *ip, const char *port_str, const char *chemin_fichier);
 
 #endif

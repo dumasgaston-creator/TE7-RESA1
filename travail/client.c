@@ -45,6 +45,7 @@ int main(int argc, char *argv[]){
     int attente_transfert = 0;
     char demandeur[INFOS_LEN] = {0};
     char fichier_attendu[BUFFER_SIZE] = {0};
+    char fichier_a_envoyer[BUFFER_SIZE] = {0};
 
 	while(1){
 		int nbfds = poll(fds, 3, -1);
@@ -81,7 +82,7 @@ int main(int argc, char *argv[]){
                 }
                 else{
                     printf("Veuillez répondre par Y ou N :  ");
-                    //fflush(stdout);
+                    fflush(stdout);
                 }
                 continue;
             }
@@ -133,6 +134,7 @@ int main(int argc, char *argv[]){
                     if (dernier_slash != NULL) {
                         nom_fichier = dernier_slash + 1;
                     }
+                    strncpy(fichier_a_envoyer, chemin_complet, BUFFER_SIZE - 1);
 
                     printf("Demande d'envoi du fichier '%s'...\n", nom_fichier);
                     envoyer_requete(client_fd, FILE_REQUEST, buffer + 6, nom_fichier, strlen(chemin_complet));
@@ -144,7 +146,7 @@ int main(int argc, char *argv[]){
         }
 
 		if(fds[1].revents & POLLIN){  //si activité du serveur
-			traiter_reception_serveur(client_fd, buffer, &attente_transfert, demandeur, fichier_attendu);
+			traiter_reception_serveur(client_fd, buffer, &attente_transfert, demandeur, fichier_attendu, fichier_a_envoyer);
 		}
 
         if(fds[2].revents & POLLIN){  //qqn se connecte
