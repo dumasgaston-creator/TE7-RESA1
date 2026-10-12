@@ -53,6 +53,8 @@ void envoyer_message_prive(struct client_info *tete, int fd_expediteur, struct m
         strncpy(msg->nick_sender, expediteur->pseudo, NICK_LEN);
         msg->nick_sender[NICK_LEN-1]= '\0';
     }
+
+    
     
     //On cherche le destinataire 
 
@@ -67,6 +69,18 @@ void envoyer_message_prive(struct client_info *tete, int fd_expediteur, struct m
         #if DEBUG == 1
             printf("[DEBUG] routage : Destinataire '%s' introuvable.\n", msg->infos);
         #endif
+
+        char buf[MSG_LEN];
+        sprintf(buf, "Erreur : L'utilisateur '%s' n'existe pas ou n'est pasconnecté\n.", msg->infos);
+
+        struct message reponse_erreur;
+        memset(&reponse_erreur, 0, sizeof(struct message));
+        reponse_erreur.type = UNICAST_SEND;
+        reponse_erreur.pld_len = strlen(buf);
+        strncpy(reponse_erreur.nick_sender, " Serveur de LAGAST", NICK_LEN);
+        reponse_erreur.nick_sender[NICK_LEN -1] = '\0';
+        write(fd_expediteur, &reponse_erreur, sizeof(struct message));
+        write(fd_expediteur, buf, reponse_erreur.pld_len);
     }   
 }
 
@@ -121,7 +135,7 @@ void envoyer_infos_client(struct client_info *tete, int fd_demandeur, char *pseu
     memset(&reponse_serveur, 0, sizeof(struct message));
     reponse_serveur.type = NICKNAME_INFOS;
     reponse_serveur.pld_len = strlen(buf);
-    strncpy(reponse_serveur.nick_sender, "Serveur", NICK_LEN);
+    strncpy(reponse_serveur.nick_sender, "LE SERVEUR GENIAL DE LAGAST", NICK_LEN);
     reponse_serveur.nick_sender[NICK_LEN -1]='\0';
 
     write(fd_demandeur, &reponse_serveur, sizeof(struct message));
