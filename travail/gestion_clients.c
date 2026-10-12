@@ -63,7 +63,7 @@ struct client_info *chercher_client_par_fd(struct client_info *tete, int fd_cibl
     #endif
 
     struct client_info *actuel = tete;
-    while (NULL == actuel){
+    while (NULL != actuel){
         if (actuel->fd == fd_cible){
             #if DEBUG == 1
                 printf("Trouvé ! (Pseudo: %s)\n", actuel->pseudo);
