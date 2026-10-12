@@ -105,8 +105,11 @@ int main(int argc, char *argv[]) {
                             diffuser_message_public(tete, fds[i].fd, &msg_recu, buffer);
                             break;
                             
-                        // CLIENT ENVOIE MESSAGE PRIVE
+                        // CLIENT ENVOIE MESSAGE PRIVE + P2P
                         case UNICAST_SEND : 
+                        case FILE_REQUEST :
+                        case FILE_ACCEPT :
+                        case FILE_REJECT : 
                             envoyer_message_prive(tete, fds[i].fd, &msg_recu, buffer);
                             break;
                             
