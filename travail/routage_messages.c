@@ -129,7 +129,7 @@ void envoyer_infos_client(struct client_info *tete, int fd_demandeur, char *pseu
         sprintf(buf, "L'utilisateur %s est connecté depuis l'IP %s sur le port %d", cible->pseudo, cible->ip, cible->port);
 
     }else{
-        sprintf(buf, "erreur : l'utilisateur '%s' est introuvable.", cible->pseudo);
+        sprintf(buf, "erreur : l'utilisateur '%s' est introuvable.", pseudo_cible);
     }
     struct message reponse_serveur;
     memset(&reponse_serveur, 0, sizeof(struct message));
