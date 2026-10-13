@@ -23,7 +23,7 @@ int main(int argc, char *argv[]){
     printf("  /send <pseudo> <fic> : Envoyer un fichier \n");
     printf("  /quit                : Quitter le serveur\n");
     printf("===================================================\n");
-    fflush(stdout); // Force l'affichage immédiat
+    fflush(stdout);
 	// Req 1.5
 	struct pollfd fds[3];
 	fds[0].fd = 0;
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]){
                     char *nom_fichier = chemin_complet;
                     char *dernier_slash = strrchr(chemin_complet, '/');
         
-                    if (dernier_slash != NULL) {
+                    if (dernier_slash != NULL) { //pareil segfault
                         nom_fichier = dernier_slash + 1;
                     }
                     strncpy(fichier_a_envoyer, chemin_complet, BUFFER_SIZE - 1);
